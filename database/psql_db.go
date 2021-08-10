@@ -14,11 +14,15 @@ import (
 
 const (
 	createQuery = `CREATE TABLE IF NOT EXISTS KV (
-					key varchar(64),
+					key varchar(64) PRIMARY KEY,
 					value varchar(64)
 				   )`
 
-	insertQuery = `INSERT INTO KV(key, value) VALUES($1, $2)`
+	upsertQuery = `INSERT INTO KV(key, value) VALUES($1, $2)
+				   ON CONFLICT(key) do 
+				   UPDATE SET value = EXCLUDED.value`
+
+	getQuery = `SELECT value from KV where key = $1`
 
 	chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
@@ -55,8 +59,25 @@ func (db *Database) Init() {
 	if err = db.pool.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	db.seed(10)
+	db.seed(2)
 
+}
+
+func (db *Database) Get(key string) (value string) {
+	if err := db.pool.QueryRow(getQuery, key).Scan(&value); err != nil {
+		log.Println("psql db hit :", key, "not found in DB", err)
+		return ""
+	}
+	log.Println("psql db hit -", key, ":", value, "found in DB")
+	return value
+}
+
+func (db *Database) Set(key, value string) {
+	if _, err := db.pool.Exec(upsertQuery, key, value); err != nil {
+		log.Println("psql db hit, insert failed", err)
+		return
+	}
+	log.Println("psql db hit, upserted -", key, ":", value)
 }
 
 // Seeds the db with n random Key-Value pairs
@@ -70,7 +91,7 @@ func (db *Database) seed(n int) {
 		stmt *sql.Stmt
 		err  error
 	)
-	if stmt, err = db.pool.Prepare(insertQuery); err != nil {
+	if stmt, err = db.pool.Prepare(upsertQuery); err != nil {
 		log.Fatalln(err)
 	}
 	for i := 0; i < n; i++ {
