@@ -3,20 +3,20 @@
 ## Usage
 
 1. Make sure you have Go and Postgres 12 installed
-2. Run sudo -u postgres createdb grp_cache
+2. Run `sudo -u postgres createdb grp_cache`
 3. Update password of postgres user in config.json
-4. Run go build main.go
-5. Run ./main
+4. Run `go build main.go`
+5. Run `./main`
 6. SQL Tables will be created automatically
 7. 2 HTTP servers will start on 8080 and 8081
 
 ## REST API
-* get          : GET /get/{key}
-* set (upsert) : POST /set/{key}/{value}
+* get          : GET `/get/{key}`
+* set (upsert) : POST `/set/{key}/{value}`
 
 ## Testing
-* curl -X POST localhost:8080/set/{key}/{value}
-* curl -X GET localhost:8080/get/{key}
+* `curl -X POST localhost:8080/set/{key}/{value}`
+* `curl -X GET localhost:8080/get/{key}`
 
 ## References
 * https://www.mailgun.com/blog/golangs-superior-cache-solution-memcached-redis/
