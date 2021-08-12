@@ -59,8 +59,6 @@ func (db *Database) Init() {
 	if err = db.pool.Ping(); err != nil {
 		log.Fatalln(err)
 	}
-	db.seed(2)
-
 }
 
 func (db *Database) Get(key string) (value string) {
