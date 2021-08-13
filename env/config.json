@@ -3,5 +3,5 @@
     "hostname" : "localhost",
     "port" : 5432,
     "user" : "postgres",
-    "password" : "deepstack"
+    "password" : "postgres"
 }

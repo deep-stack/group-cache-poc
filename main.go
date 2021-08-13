@@ -9,13 +9,13 @@ import (
 	"sync"
 	"time"
 
-	gc "github.com/golang/groupcache"
 	"github.com/gorilla/mux"
 	_ "github.com/lib/pq"
+	gc "github.com/mailgun/groupcache/v2"
 	db "group.cache.poc/database"
 )
 
-var db_pool *db.Database
+var dbPool *db.Database
 
 func main() {
 	var mux = mux.NewRouter()
@@ -23,15 +23,15 @@ func main() {
 	peers := flag.String("pool", "http://localhost:8080", "server pool list (comma separated)")
 	flag.Parse()
 
-	db_pool = &db.Database{}
-	db_pool.Init()
+	dbPool = &db.Database{}
+	dbPool.Init()
 	p := strings.Split(*peers, ",")
 
 	wg := sync.WaitGroup{}
 	wg.Add(1)
-	pool := gc.NewHTTPPoolOpts(p[0], nil)
-	pool.Set(p...)
-	mux.Handle("/_groupcache/", pool)
+	gcPool := gc.NewHTTPPoolOpts(p[0], &gc.HTTPPoolOptions{})
+	gcPool.Set(p...)
+	mux.Handle("/_groupcache/", gcPool)
 	go runHttpServer(*addr, mux)
 	wg.Wait()
 }
@@ -54,8 +54,9 @@ func runHttpServer(addr string, mux *mux.Router) {
 // 64 << 20 Bytes ~ 64 MB
 var Group = gc.NewGroup("foobar", 64<<20, gc.GetterFunc(
 	func(ctx context.Context, key string, dest gc.Sink) error {
+
 		log.Println("Groupcache queried for key =", key)
-		if err := dest.SetBytes([]byte(db_pool.Get(key))); err != nil {
+		if err := dest.SetBytes([]byte(dbPool.Get(key)), time.Time{}); err != nil {
 			log.Println("Cache Filling error :", err)
 			return err
 		}
@@ -66,8 +67,9 @@ var Group = gc.NewGroup("foobar", 64<<20, gc.GetterFunc(
 // HTTP Middleware functions
 // TODO : Return 404 in case key not found
 func get(w http.ResponseWriter, r *http.Request) {
+	key := mux.Vars(r)["key"]
 	value := []byte("")
-	if err := Group.Get(context.TODO(), mux.Vars(r)["key"], gc.AllocatingByteSliceSink(&value)); err != nil {
+	if err := Group.Get(context.TODO(), key, gc.AllocatingByteSliceSink(&value)); err != nil {
 		log.Println("Groupcache Get failed", err)
 	}
 	if _, err := w.Write(value); err != nil {
@@ -77,7 +79,15 @@ func get(w http.ResponseWriter, r *http.Request) {
 
 // TODO : Return Internal server error in case upsert fails
 // TODO : Use query params or multipart form instead of this
+// TODO : Make Group.Remove to work
 func set(w http.ResponseWriter, r *http.Request) {
-	db_pool.Set(mux.Vars(r)["key"], mux.Vars(r)["value"])
+	key := mux.Vars(r)["key"]
+	value := mux.Vars(r)["value"]
+	/*
+		if err := Group.Remove(context.TODO(), key); err != nil {
+			log.Println("Groupcache Remove failed", err)
+		}
+	*/
+	dbPool.Set(key, value)
 	w.Write([]byte("KV pair upserted"))
 }
