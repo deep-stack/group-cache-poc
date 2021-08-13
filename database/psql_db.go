@@ -59,6 +59,9 @@ func (db *Database) Init() {
 	if err = db.pool.Ping(); err != nil {
 		log.Fatalln(err)
 	}
+	if _, err := db.pool.Query(createQuery); err != nil {
+		log.Fatalln("Failed to create table", err)
+	}
 }
 
 func (db *Database) Get(key string) (value string) {
@@ -82,9 +85,6 @@ func (db *Database) Set(key, value string) {
 func (db *Database) seed(n int) {
 
 	rand.Seed(time.Now().UnixNano())
-	if _, err := db.pool.Query(createQuery); err != nil {
-		log.Fatalln(err)
-	}
 	var (
 		stmt *sql.Stmt
 		err  error
