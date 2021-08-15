@@ -11,15 +11,15 @@
 7. SQL Tables will be created automatically
 8. 2 HTTP servers will start on 8080 and 8081
 
-## REST API
-* get          : GET `/get/{key}`
-* set (upsert) : POST `/set/{key}/{value}`
+## RESTful API
+* get          : GET `/Get?key=k`
+* set (upsert) : POST `/Set?key=k&value=v`
 
 ## Testing
-* `curl -X POST localhost:8080/set/{key}/{value}`
-* `curl -X GET localhost:8080/get/{key}`
+* `curl -X POST "localhost:8080/Set?key=foo&value=bar"`
+* `curl "localhost:8081/Get?key=foo"`
 
 ## References
-* https://www.mailgun.com/blog/golangs-superior-cache-solution-memcached-redis/
+* https://www.mailgun.com/blog/golangs-superior-cache-solution-memcached-redis
 * https://github.com/mailgun/groupcache
 * https://www.alexedwards.net/blog/organising-database-access
