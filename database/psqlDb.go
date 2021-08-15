@@ -50,8 +50,7 @@ func (db *Database) Init() {
 	}
 	json.Unmarshal(byt, db)
 
-	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		db.Hostname, db.Port, db.User, db.Password, db.Name)
+	psqlconn := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", db.Hostname, db.Port, db.User, db.Password, db.Name)
 	if db.pool, err = sql.Open("postgres", psqlconn); err != nil {
 		log.Fatalln(err)
 	}
