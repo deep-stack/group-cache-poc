@@ -8,7 +8,7 @@
 ```bash
 sudo -u postgres createdb group_cache_poc
 ```
-* Update password of `postgres` user in config.json
+* Update password of `postgres` user in ./env/config.json
 * Run 
 ```bash
 go build main.go
