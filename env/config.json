@@ -1,7 +1,7 @@
 {
-    "name" : "grp_cache",
+    "name" : "group_cache_poc",
     "hostname" : "localhost",
     "port" : 5432,
     "user" : "postgres",
-    "password" : ""
+    "password" : "deepstack"
 }
